@@ -11,10 +11,8 @@ public class meshScript : MonoBehaviour
 
     void Start()
     {
-        // programatically create meshfilter and meshrenderer and add to gameobject this script is attached to.
-        GameObject go = gameObject; // GameObject.Find("GameObjectDp");
-        MeshFilter meshFilter = (MeshFilter)go.AddComponent(typeof(MeshFilter));
-        MeshRenderer renderer = go.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
+        MeshFilter meshFilter = (MeshFilter)gameObject.AddComponent(typeof(MeshFilter));
+        MeshRenderer renderer = gameObject.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
     }
  
     public void createMeshGeometry(List<Vector3> vertices, List<int> indices)
@@ -22,20 +20,14 @@ public class meshScript : MonoBehaviour
         Mesh mesh = GetComponent<MeshFilter>().mesh;
         mesh.Clear();
         mesh.vertices = vertices.ToArray();
-    //    mesh.SetVertices(vertices);
-        //mesh.SetUVs()
      
-        // https://docs.unity3d.com/ScriptReference/MeshTopology.html
-        // mesh.SetIndices(Triangles.ToArray(), MeshTopology.Points, 0);
         mesh.SetIndices(indices.ToArray(), MeshTopology.Lines, 0);
-        // mesh.SetIndices(indices.ToArray(), MeshTopology.LineStrip, 0); 
-        //mesh.SetIndices(indices.ToArray(), MeshTopology.Triangles, 0);
-     
-
         // mesh.MarkDynamic();  // https://docs.unity3d.com/ScriptReference/Mesh.MarkDynamic.html
         // For iterative mesh additions without reloading the old mesh data   https://docs.unity3d.com/ScriptReference/Mesh.CombineMeshes.html
         //mesh.Optimize();  //https://docs.unity3d.com/ScriptReference/Mesh.Optimize.html
+
         mesh.RecalculateBounds();
+        
         //mesh.RecalculateNormals();
     }
 

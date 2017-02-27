@@ -6,37 +6,28 @@ using System.IO;
 
 public class quadScript : MonoBehaviour {
 
-    // forklar klassen at dicom har et "levende" dictionary som leses fra xml ved initDicom
-    // at slices må sorteres, og det basert på en tag, men at pixeldata lesing er en separat operasjon, derfor har vi nullpeker til pixeldata
-    // at dicomfile lagres slik at fil ikke må leses enda en gang når pixeldata hentes
-    
+    #region MemberVariables
     Slice[] _slices;
-    int _currSlice = 0;
-    meshScript _outlineScript;
-    List<Vector3> _outlineVerts;
-    List<int> _outlineIndices;
-    float isoValue = 2500.0f;
 
-    // Use this for initialization
+    int mCurrentSlice = 0;
+    float mCurrentIsoValue = 2500.0f;
+
+    meshScript mOutlineMeshScript;
+    List<Vector3> mOutlineVertices;
+    List<int> mOutlineIndices;
+
     void Start () {
        
         Slice.initDicom();
 
-        string dicomfilepath = Application.dataPath + @"\..\dicomdata\"; // Application.dataPath is in the assets folder, but these files are "managed", so we go one level up
+        string dicomfilepath = Application.dataPath + @"\..\dicomdata\";
         _slices = processSlices(dicomfilepath);
         setTexture(_slices[0]);
 
-        _outlineVerts = new List<Vector3>();
-        _outlineIndices = new List<int>();
+        mOutlineVertices = new List<Vector3>();
+        mOutlineIndices = new List<int>();
 
-        _outlineScript = GameObject.Find("GameObjectMesh").GetComponent<meshScript>();
-        List<Vector3> vertices = new List<Vector3>();
-        List<int> indices = new List<int>();
-        vertices.Add(new Vector3(-0.5f,-0.5f,0));
-        vertices.Add(new Vector3(0.5f,0.5f,0));
-        indices.Add(0);
-        indices.Add(1);
-        _outlineScript.createMeshGeometry(vertices, indices);
+        mOutlineMeshScript = GameObject.Find("GameObjectMesh").GetComponent<meshScript>();
     }
 
     Slice[] processSlices(string dicomfilepath)
@@ -67,6 +58,7 @@ public class quadScript : MonoBehaviour {
         
         return slices;
     }
+    #endregion
 
     void setTexture(Slice slice)
     {
@@ -82,7 +74,7 @@ public class quadScript : MonoBehaviour {
             for (int x = 0; x < xdim; x++)
             {
                 float val = pixelval(new Vector2(x, y), xdim, pixels);
-                float v = val / isoValue;
+                float v = val / mCurrentIsoValue;
                 texture.SetPixel(x, y, new UnityEngine.Color(v, v, v));
             }
 
@@ -102,28 +94,15 @@ public class quadScript : MonoBehaviour {
         return pixels[(int)x + (int)y * xdim];
     }
 
-    Vector2 vec2(float x, float y)
-    {
-        return new Vector2(x, y);
-    }
-
-
-    // Update is called once per frame
-    void Update () {
-        
-      
-    }
-
     void addOutlineVerts(float x1, float y1, float x2, float y2, int xdim, int ydim)
     {
-        if (_outlineIndices.Count < 65000)
+        if (mOutlineIndices.Count < 65000)
         {
-            _outlineVerts.Add(new Vector3(x1 / xdim - 0.5f, y1 / ydim - 0.5f, 0.0f));
-            _outlineIndices.Add(_outlineVerts.Count - 1);
-            _outlineVerts.Add(new Vector3(x2 / xdim - 0.5f, y2 / ydim - 0.5f, 0.0f));
-            _outlineIndices.Add(_outlineVerts.Count - 1);
+            mOutlineVertices.Add(new Vector3(x1 / xdim - 0.5f, y1 / ydim - 0.5f, 0.0f));
+            mOutlineIndices.Add(mOutlineVertices.Count - 1);
+            mOutlineVertices.Add(new Vector3(x2 / xdim - 0.5f, y2 / ydim - 0.5f, 0.0f));
+            mOutlineIndices.Add(mOutlineVertices.Count - 1);
         }
-
     }
 
     void generateOutlineMesh(Slice slice)
@@ -132,8 +111,8 @@ public class quadScript : MonoBehaviour {
         int xdim = slice.sliceInfo.Rows;
         int ydim = slice.sliceInfo.Columns;
 
-        _outlineVerts.Clear();
-        _outlineIndices.Clear();
+        mOutlineVertices.Clear();
+        mOutlineIndices.Clear();
 
         var texture = new Texture2D(xdim, ydim, TextureFormat.RGB24, false);     // garbage collector will tackle that it is new'ed 
 
@@ -147,14 +126,14 @@ public class quadScript : MonoBehaviour {
 
                 if (val > 0)
                 {
-                    bool middleIso = val > isoValue ? true : false;
+                    bool middleIso = val > mCurrentIsoValue ? true : false;
 
 
                     //left
                     if (x - 1 > 0)
                     {
                         float left = pixelval(new Vector2(x - 1, y), xdim, pixels);
-                        bool leftIso = left > isoValue ? true : false;
+                        bool leftIso = left > mCurrentIsoValue ? true : false;
                         if (middleIso != leftIso)
                         {
                             addOutlineVerts(x, y, x, y+1, xdim, ydim);
@@ -165,7 +144,7 @@ public class quadScript : MonoBehaviour {
                     if (x + 1 < xdim)
                     {
                         float right = pixelval(new Vector2(x + 1, y), xdim, pixels);
-                        bool rightIso = right > isoValue ? true : false;
+                        bool rightIso = right > mCurrentIsoValue ? true : false;
                         if (middleIso != rightIso)
                         {
                             addOutlineVerts(x+1, y, x + 1, y+1, xdim, ydim);
@@ -176,7 +155,7 @@ public class quadScript : MonoBehaviour {
                     if (y - 1 > 0)
                     {
                         float up = pixelval(new Vector2(x, y - 1), xdim, pixels);
-                        bool upIso = up > isoValue ? true : false;
+                        bool upIso = up > mCurrentIsoValue ? true : false;
                         if (middleIso != upIso)
                         {
                             addOutlineVerts(x, y, x+1, y, xdim, ydim);
@@ -187,7 +166,7 @@ public class quadScript : MonoBehaviour {
                     if (y + 1 < ydim)
                     {
                         float down = pixelval(new Vector2(x, y + 1), xdim, pixels);
-                        bool downIso = down > isoValue ? true : false;
+                        bool downIso = down > mCurrentIsoValue ? true : false;
                         if (middleIso != downIso)
                         {
                             addOutlineVerts(x, y+1, x+1, y + 1, xdim, ydim);
@@ -197,30 +176,30 @@ public class quadScript : MonoBehaviour {
                 }
             }
         }
-        _outlineScript.createMeshGeometry(_outlineVerts, _outlineIndices);
+        mOutlineMeshScript.createMeshGeometry(mOutlineVertices, mOutlineIndices);
     }
 
    
     public void slicePosSliderChange(float val)
     {
         int showSlice = (int)((val * 354) - 1);
-        _currSlice = showSlice;
+        mCurrentSlice = showSlice;
         setTexture(_slices[showSlice]);
-        generateOutlineMesh(_slices[_currSlice]);
+        generateOutlineMesh(_slices[mCurrentSlice]);
         print("slicePosSliderChange:" + val); 
     }
     
     public void sliceIsoSliderChange(float val)
     {
 
-        isoValue = val * 2500.0f;
-        setTexture(_slices[_currSlice]);
-        generateOutlineMesh(_slices[_currSlice]);
+        mCurrentIsoValue = val * 2500.0f;
+        setTexture(_slices[mCurrentSlice]);
+        generateOutlineMesh(_slices[mCurrentSlice]);
     }
     
     public void buttonPushed()
     {
-        generateOutlineMesh(_slices[_currSlice]);
+        generateOutlineMesh(_slices[mCurrentSlice]);
     }
 
 }
