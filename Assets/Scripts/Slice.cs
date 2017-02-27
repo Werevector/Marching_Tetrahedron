@@ -6,6 +6,7 @@
 
 
 using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -15,7 +16,6 @@ using Dicom.Imaging;
 using Dicom.Imaging.Render;
 using Dicom.IO.Buffer;
 using UnityEngine;
-using System.IO;
 using Dicom.IO;
 using Dicom.IO.Reader;
 using UnityEngine.Assertions;
@@ -113,6 +113,32 @@ class Slice : IComparable   // IComparable so it can be sorted by sort()
         var dict = new DicomDictionary();
         dict.Load(@".\Assets\dicom\DICOM Dictionary.xml", DicomDictionaryFormat.XML);
         DicomDictionary.Default = dict;
+    }
+
+    public static Slice[] ProcessSlices(string dicomfilepath)
+    {
+        string[] dicomfilenames = Directory.GetFiles(dicomfilepath, "*.IMA");
+
+        int numSlices = dicomfilenames.Length;
+
+        Slice[] slices = new Slice[numSlices];
+
+        float max = -1;
+        float min = 99999;
+        for (int i = 0; i < numSlices; i++)
+        {
+            string filename = dicomfilenames[i];
+            slices[i] = new Slice(filename);
+            SliceInfo info = slices[i].sliceInfo;
+            if (info.LargestImagePixelValue > max) max = info.LargestImagePixelValue;
+            if (info.SmallestImagePixelValue < min) min = info.SmallestImagePixelValue;
+            // Del dataen på max før den settes inn i tekstur
+            // alternativet er å dele på 2^dicombitdepth,  men det ville blitt 4096 i dette tilfelle
+
+        }
+        Array.Sort(slices);
+
+        return slices;
     }
 
 }

@@ -15,6 +15,7 @@ public class quadScript : MonoBehaviour {
     meshScript mOutlineMeshScript;
     List<Vector3> mOutlineVertices;
     List<int> mOutlineIndices;
+    #endregion
 
     void Start () {
        
@@ -58,7 +59,7 @@ public class quadScript : MonoBehaviour {
         
         return slices;
     }
-    #endregion
+    
 
     void setTexture(Slice slice)
     {
