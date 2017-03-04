@@ -21,7 +21,7 @@ public class meshScript : MonoBehaviour
         mesh.Clear();
         mesh.vertices = vertices.ToArray();
      
-        mesh.SetIndices(indices.ToArray(), MeshTopology.Lines, 0);
+        mesh.SetIndices(indices.ToArray(), MeshTopology.Triangles, 0);
         // mesh.MarkDynamic();  // https://docs.unity3d.com/ScriptReference/Mesh.MarkDynamic.html
         // For iterative mesh additions without reloading the old mesh data   https://docs.unity3d.com/ScriptReference/Mesh.CombineMeshes.html
         //mesh.Optimize();  //https://docs.unity3d.com/ScriptReference/Mesh.Optimize.html
