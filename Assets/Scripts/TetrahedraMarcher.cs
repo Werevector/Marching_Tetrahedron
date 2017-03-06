@@ -8,9 +8,7 @@ public class TetrahedraMarcher : MonoBehaviour {
 
     #region MemberVariables
     Slice[] mSlices;
-
-    int mCurrentSliceIndex = 0;
-    float mCurrentIsoValue = 2500.0f/3;
+    float mIsoValue = 2500.0f/3;
 
     meshScript mMesh;
     List<Vector3> mMeshVertices;
@@ -25,9 +23,9 @@ public class TetrahedraMarcher : MonoBehaviour {
     }
 
     void Start () {
-        //Slice.initDicom();
-        //string dicomfilepath = Application.dataPath + @"\..\dicomdata\";
-        //mSlices = Slice.ProcessSlices(dicomfilepath);
+        Slice.initDicom();
+        string dicomfilepath = Application.dataPath + @"\..\dicomdata\";
+        mSlices = Slice.ProcessSlices(dicomfilepath);
         mMeshVertices = new List<Vector3>();
         mMeshIndices = new List<int>();
         mMesh = GameObject.Find("GameObjectMesh").GetComponent<meshScript>();
@@ -35,11 +33,7 @@ public class TetrahedraMarcher : MonoBehaviour {
 
     void GenerateSurfaceMesh ()
     {
-        //for (int i = 0; i < mSlices.Length - 1; i++)
-        //{
-        //    EvaluateSlice(i);
-        //}
-        for (int i = 0; i < 30; i++)
+        for (int i = 0; i < mSlices.Length - 1; i++)
         {
             EvaluateSlice(i);
         }
@@ -47,19 +41,12 @@ public class TetrahedraMarcher : MonoBehaviour {
 
     void EvaluateSlice(int index)
     {
-        //Slice sliceA = mSlices[index];
-        //Slice sliceB = mSlices[index + 1];
-        //int width = sliceA.sliceInfo.Rows;
-        //int height = sliceA.sliceInfo.Columns;
-        int width = 100;
-        int height = 100;
-        debugCenter = new Vector3(width / 2, height / 2, 30 / 2);
-
-        //ushort[] pixelsA = sliceA.getPixels();
-        //ushort[] pixelsB = sliceB.getPixels();
-
-        ushort[] pixelsA = new ushort[10];
-        ushort[] pixelsB = new ushort[10];
+        Slice sliceA = mSlices[index];
+        Slice sliceB = mSlices[index + 1];
+        int width = sliceA.sliceInfo.Rows;
+        int height = sliceA.sliceInfo.Columns;
+        ushort[] pixelsA = sliceA.getPixels();
+        ushort[] pixelsB = sliceB.getPixels();
 
         for (int x = 0; x < width-1; x++)
         {
@@ -84,37 +71,17 @@ public class TetrahedraMarcher : MonoBehaviour {
 
         bool c0, c1, c2, c3, c4, c5, c6, c7;
 
-        ////pA = Bottom square
-        //c0 = EvaluatePointByIso(PixelValue(x, y, width, pA));
-        //c1 = EvaluatePointByIso(PixelValue(x + 1, y, width, pA));
-        //c4 = EvaluatePointByIso(PixelValue(x, y + 1, width, pA));
-        //c5 = EvaluatePointByIso(PixelValue(x + 1, y + 1, width, pA));
+        //pA = Bottom square
+        c0 = EvaluatePointByIso(PixelValue(x, y, width, pA));
+        c1 = EvaluatePointByIso(PixelValue(x + 1, y, width, pA));
+        c4 = EvaluatePointByIso(PixelValue(x, y + 1, width, pA));
+        c5 = EvaluatePointByIso(PixelValue(x + 1, y + 1, width, pA));
 
-        //////pB = Top square
-        //c2 = EvaluatePointByIso(PixelValue(x, y, width, pB));
-        //c3 = EvaluatePointByIso(PixelValue(x + 1, y, width, pB));
-        //c6 = EvaluatePointByIso(PixelValue(x, y + 1, width, pB));
-        //c7 = EvaluatePointByIso(PixelValue(x + 1, y + 1, width, pB));
-
-        c0 = EvaluatePointByIso(DebugPixelValue(x, y, z, width, pA));
-        c1 = EvaluatePointByIso(DebugPixelValue(x + 1, y, z, width, pA));
-        c4 = EvaluatePointByIso(DebugPixelValue(x, y + 1, z, width, pA));
-        c5 = EvaluatePointByIso(DebugPixelValue(x + 1, y + 1, z, width, pA));
-
-        c2 = EvaluatePointByIso(DebugPixelValue(x, y, z, width, pB));
-        c3 = EvaluatePointByIso(DebugPixelValue(x + 1, y, z, width, pB));
-        c6 = EvaluatePointByIso(DebugPixelValue(x, y + 1, z, width, pB));
-        c7 = EvaluatePointByIso(DebugPixelValue(x + 1, y + 1, z, width, pB));
-
-        //c0 = EvaluatePointByIso(DebugPixelValueSph(x, y, z, width, pA));
-        //c1 = EvaluatePointByIso(DebugPixelValueSph(x + 1, y, z, width, pA));
-        //c4 = EvaluatePointByIso(DebugPixelValueSph(x, y + 1, z, width, pA));
-        //c5 = EvaluatePointByIso(DebugPixelValueSph(x + 1, y + 1, z, width, pA));
-
-        //c2 = EvaluatePointByIso(DebugPixelValueSph(x, y, z, width, pB));
-        //c3 = EvaluatePointByIso(DebugPixelValueSph(x + 1, y, z, width, pB));
-        //c6 = EvaluatePointByIso(DebugPixelValueSph(x, y + 1, z, width, pB));
-        //c7 = EvaluatePointByIso(DebugPixelValueSph(x + 1, y + 1, z, width, pB));
+        ////pB = Top square
+        c2 = EvaluatePointByIso(PixelValue(x, y, width, pB));
+        c3 = EvaluatePointByIso(PixelValue(x + 1, y, width, pB));
+        c6 = EvaluatePointByIso(PixelValue(x, y + 1, width, pB));
+        c7 = EvaluatePointByIso(PixelValue(x + 1, y + 1, width, pB));
 
         Vector3 p0 = new Vector3(x, y, z);
         Vector3 p1 = new Vector3(x + 1, y, z);
@@ -196,7 +163,7 @@ public class TetrahedraMarcher : MonoBehaviour {
     //Is point over/under the ISO value
     bool EvaluatePointByIso(ushort v)
     {
-        return v > mCurrentIsoValue;
+        return v > mIsoValue;
     }
 
     
@@ -271,25 +238,6 @@ public class TetrahedraMarcher : MonoBehaviour {
     ushort PixelValue(float x, float y, int xdim, ushort[] pixels)
     {
         return pixels[(int)x + (int)y * xdim];
-    }
-
-    ushort DebugPixelValue(float x, float y, int index, int xdim, ushort[] pixels)
-    {
-        ushort val = (ushort)(mCurrentIsoValue - 100);
-        if((x > 20 && x < 40) && (y > 20 && y < 40) && (index > 5 && index < 20))
-            val = (ushort)(mCurrentIsoValue + 100);
-        return val;
-    }
-
-    ushort DebugPixelValueSph(float x, float y, int index, int xdim, ushort[] pixels)
-    {
-        ushort val = (ushort)(mCurrentIsoValue - 100);
-        Vector3 pt = new Vector3(x, y, index);
-        if (Vector3.Distance(pt, debugCenter) > 10)
-        {
-            val = (ushort)(mCurrentIsoValue + 100);
-        }
-        return val;
     }
     #endregion
 }
